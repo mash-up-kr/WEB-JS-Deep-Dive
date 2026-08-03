@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# 에디터 / IDE
+.vscode/
+.idea/
+*.swp
+
+# 의존성 (예제 코드 실행용)
+node_modules/
+
+# 환경 변수
+.env
+.env.local
