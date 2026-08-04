@@ -302,38 +302,110 @@ if (arr.includes('a')) { /* ✅ */ }
 
 `indexOf`는 못 찾으면 `-1`(truthy!), 첫 요소면 `0`(falsy)을 반환한다. **참/거짓이 정확히 뒤집힌다.** 존재 여부만 볼 땐 `includes`를 쓴다.
 
-**함정 2 — 0과 빈 문자열이 유효한 값일 때**
+**함정 2 — `0`과 `''`이 진짜 값일 때**
+
+장바구니 재고를 확인하는 코드를 짠다고 하자.
 
 ```js
-const config = { count: 0, name: '' };
+function checkStock(item) {
+  if (!item.stock) {
+    return '재고 정보가 없습니다';
+  }
+  return `재고 ${item.stock}개`;
+}
 
-if (!config.count) { /* ❌ 0은 유효한 값인데 "없음"으로 판정된다 */ }
+checkStock({ stock: 5 });   // '재고 5개'      ✅
+checkStock({});             // '재고 정보 없음'  ✅
+checkStock({ stock: 0 });   // '재고 정보 없음'  ❌ ← 품절인데!
 ```
 
-수량 `0`, 좌표 `0`, 빈 문자열은 **정상적인 데이터**인데 falsy라 걸러진다. 이럴 땐 존재 여부를 직접 물어야 한다.
+**품절(`0`)인데 "정보가 없다"고 나온다.** `stock: 0`은 "재고를 세어봤더니 0개"라는 **정확한 정보**인데, `!0`이 `true`라서 정보가 없는 경우와 똑같이 처리된 것이다.
+
+이런 값들이 전부 같은 함정에 빠진다.
+
+| 값 | 실제 의미 | `!값` |
+| --- | --- | --- |
+| `0` | 품절, 좌표 원점, 0원, 0점 | `true` ❌ |
+| `''` | 사용자가 입력을 지웠음 | `true` ❌ |
+| `false` | 알림 끄기를 선택했음 | `true` ❌ |
+
+**왜 이런 일이 생기나** — `!item.stock`은 "stock이 없나?"를 묻는 게 아니라 **"stock이 falsy인가?"** 를 묻는다. 우리가 알고 싶은 건 *존재 여부*인데, 물어본 건 *참/거짓*이었다.
+
+**해결 — 없는지를 직접 물어본다**
 
 ```js
-if (config.count === undefined) { }
-if (!('count' in config))       { }
-if (config.count == null)       { }  // null과 undefined 둘 다 (== 쓰는 유일한 예외)
+// ✅ 값이 없을 때만 걸러진다
+if (item.stock === undefined) {
+  return '재고 정보가 없습니다';
+}
 ```
 
-**함정 3 — 값의 타입이 도중에 바뀔 때**
+`null`도 같이 잡고 싶다면 이렇게 쓴다.
 
 ```js
-const employee = { equipmentTraining: '' };  // 처음엔 빈 문자열
-
-// 다른 코드가 값을 바꾸거나 지우면
-delete employee.equipmentTraining;           // 이제 undefined
-
-if (!employee.equipmentTraining) { }         // 둘 다 통과 — 구분이 안 된다
+if (item.stock == null) { }   // null과 undefined 둘 다 잡힌다
 ```
 
-`''`, `undefined`, `0`, `false`가 전부 같은 falsy로 뭉뚱그려지면 **"값이 없다"와 "값이 이것이다"를 구분할 수 없다.** 이럴 땐 엄격 비교로 원하는 형태를 못 박는다.
+> `==`는 쓰지 말라고 했지만 **`== null`만은 예외**로 인정된다. `null`과 `undefined`를 한 번에 검사하는 관용구라서, 대부분의 린터도 이것만은 허용한다.
+
+**가장 편한 방법은 `??`다.** (→ 07장)
 
 ```js
-if (employee.equipmentTraining !== true) { }  // true가 아니면 전부 거절
+const stock = item.stock ?? '정보 없음';
+
+// stock: 0  →  0          ✅ 0은 살아남는다
+// stock: 없음 →  '정보 없음'  ✅
 ```
+
+**함정 3 — truthy면 다 통과시켜 버릴 때**
+
+장비를 다룰 권한이 있는지 검사하는 코드다.
+
+```js
+function checkAuth(employee) {
+  if (employee.trained) {          // "교육을 받았으면 통과"
+    return '작동 가능';
+  }
+  return '권한 없음';
+}
+
+checkAuth({ trained: true });   // '작동 가능'  ✅
+checkAuth({ trained: false });  // '권한 없음'  ✅
+```
+
+여기까진 잘 된다. 그런데 다른 팀이 이 필드에 **날짜를 넣기 시작했다고 하자.**
+
+```js
+checkAuth({ trained: '2019-01-01' });  // '작동 가능'  ❌
+checkAuth({ trained: 'not trained' }); // '작동 가능'  ❌❌❌
+```
+
+**`'not trained'`(교육 안 받음)인데 통과된다.** 문자열은 비어있지만 않으면 전부 truthy이기 때문이다.
+
+함정 2가 **"진짜 값을 falsy라고 걸러내는"** 문제였다면, 이건 반대로 **"아무 값이나 truthy라고 통과시키는"** 문제다.
+
+| | 함정 2 | 함정 3 |
+| --- | --- | --- |
+| 증상 | 통과해야 할 게 막힌다 | **막아야 할 게 통과된다** |
+| 위험도 | 버그 | **보안 사고** |
+
+**해결 — 원하는 값인지 못 박는다**
+
+"truthy면 통과"가 아니라 **"정확히 `true`일 때만 통과"** 로 바꾼다.
+
+```js
+function checkAuth(employee) {
+  if (employee.trained !== true) {   // true가 아니면 전부 거절
+    return '권한 없음';
+  }
+  return '작동 가능';
+}
+
+checkAuth({ trained: 'not trained' });  // '권한 없음'  ✅
+checkAuth({ trained: '2019-01-01' });   // '권한 없음'  ✅
+```
+
+> **권한 · 결제 · 삭제처럼 잘못 통과되면 안 되는 검사에는 truthy 판정을 쓰지 않는다.** `=== true`나 `=== '허용된값'`으로 범위를 좁힌다.
 
 </details>
 
