@@ -384,7 +384,7 @@ user.name = 'Kim';
 user = {}; // 변수 재할당은 불가능
 ```
 
-### Call by value와 Call by sharing
+### Call by value와 Pass by sharing
 
 > 객체를 함수에 전달하면 객체 자체가 복사되는 것이 아니라, 같은 객체를 가리키는 참조값이 복사된다.  
 > 따라서 함수 내부에서 객체를 변경하면 원본에도 영향을 주지만, 매개변수 자체를 재할당해도 원래 변수는 바뀌지 않는다.
