@@ -428,7 +428,7 @@ replaceUser(user);
 console.log(user.name); // 'Kim'
 ```
 
-이를 `Call by sharing`이라고 설명하기도 한다.
+이를 `Pass by sharing`이라고 설명하기도 한다.
 
 ### 얕은 복사와 깊은 복사
 
