@@ -267,7 +267,7 @@ Object.isFrozen(frozen);         // true
 
 `seal`과 `freeze`는 얕게 동작하므로 중첩 객체까지 자동으로 보호하지 않는다.
 
-> [추가 정리](https://github.com/jeongwoo903/study-log/blob/main/2025/02/%5BJS%5D%20%EB%8B%A4%EC%8B%9C%20%ED%95%9C%20%EB%B2%88%20JS%3A%20%ED%94%84%EB%A1%9C%ED%86%A0%ED%83%80%EC%9E%85.md)
+> [추가 정리](https://github.com/mash-up-kr/WEB-JS-Deep-Dive/blob/jeongwoo903/02-ch08-11-%EC%A0%9C%EC%96%B4%EB%AC%B8-%ED%83%80%EC%9E%85%EB%B3%80%ED%99%98-%EA%B0%9D%EC%B2%B4%EB%A6%AC%ED%84%B0%EB%9F%B4-%EB%B9%84%EA%B5%90/%EC%9E%A5%EC%A0%95%EC%9A%B0/READMD.md#objectfreeze%EC%99%80-objectseal)
 
 ## 17장. 생성자 함수에 의한 객체 생성
 
