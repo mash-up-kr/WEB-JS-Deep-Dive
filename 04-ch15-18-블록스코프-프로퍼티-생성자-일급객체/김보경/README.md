@@ -81,7 +81,7 @@ console.log(y); // 1
 
 ## 15.3 const 키워드
 
-- const 키워드는 상수 선언을 하지 위해 사용하지만 반드시 상수만을 위해 사용하지는 않습니다.
+- const 키워드는 상수 선언을 하기 위해 사용하지만 반드시 상수만을 위해 사용하지는 않습니다.
 - const 키워드의 특징은 let 키워드와 대부분 동일하므로 let 키워드와 다른 점을 살펴보겠습니다.
 
 ### 선언과 초기화
@@ -89,7 +89,7 @@ console.log(y); // 1
 - **const 키워드로 선언한 변수는 반드시 선언과 동시에 초기화해야 합니다.**
   - 그렇지 않으면 문법 에러가 발생합니다.
     ```js
-    const fool; // SyntaxError: Missing initialzer in const declaration
+    const foo; // SyntaxError: Missing initializer in const declaration
     ```
   - const 키워드로 선언한 변수는 let 키워드로 선언한 변수와 마찬가지로 블록 레벨 스코프를 가지며, 변수 호이스팅이 발생하지 않는 것처럼 동작합니다.
 
@@ -147,7 +147,7 @@ console.log(y); // 1
 ### 그 어떤 일부의 경우
 
 - 예를들어, 모든 객체는 `[[Prototype]]` 이라는 내부 슬롯을 갖습니다.
-- 내부 슬롯은 자바스크립트 엔진의 내부 로직이므로 원칙적으로 작접 접근할 수 없지만 `[[Prototype]]` 내부 슬롯일 경우, `__proto__`를 통해 간접적으로 접근할 수 있습니다.
+- 내부 슬롯은 자바스크립트 엔진의 내부 로직이므로 원칙적으로 직접 접근할 수 없지만 `[[Prototype]]` 내부 슬롯일 경우, `__proto__`를 통해 간접적으로 접근할 수 있습니다.
 
 ## 16.2 프로퍼티 어트리뷰트와 프로퍼티 디스크립터 객체
 
@@ -157,7 +157,7 @@ console.log(y); // 1
     - 프로퍼티의 값: `[[Value]]`
     - 값의 갱신 가능 여부: `[[Writable]]`
     - 열거 가능 여부: `[[Enumerable]]`
-    - 재정의 가능 여부: `[[Cinfigurable]]`
+    - 재정의 가능 여부: `[[Configurable]]`
   - 따라서 프로퍼티 어트리뷰트에 직접 접근할 수 없지만 `Object.getOwnPropertyDescriptor` 메서드를 사용하여 간접적으로 확인할 수는 있습니다.
     - `Object.getOwnPropertyDescriptor` 메서드는 프로퍼티 어트리뷰트 정보를 제공하는 프로퍼티 디스크립터 객체를 반환합니다.
 
@@ -175,7 +175,7 @@ console.log(y); // 1
   - 프로퍼티의 값: `[[Value]]`
   - 값의 갱신 가능 여부: `[[Writable]]`
   - 열거 가능 여부: `[[Enumerable]]`
-  - 재정의 가능 여부: `[[Cinfigurable]]`
+  - 재정의 가능 여부: `[[Configurable]]`
 
   ![데이터 프로퍼티의 어트리뷰트](./image3.png)
 
@@ -234,11 +234,11 @@ console.log(descriptor);
 // {get: f, set: f, enumerable: true, configurable: true}
 ```
 
-- 메서드 앞에 get, set이 붙은 메서드가 바로 getter/setter 압니다. 그리고 함수의 이름 fullName이 접근자 프로퍼티 입니다.
+- 메서드 앞에 get, set이 붙은 메서드가 바로 getter/setter 입니다. 그리고 함수의 이름 fullName이 접근자 프로퍼티 입니다.
   - 접근자 프로퍼티는 자체적으로 값(프로퍼티 어트리뷰트 `[[Value]]`)을 가지지 않으며 데이터 프로퍼티의 값을 읽거나 저장할 때 관여만 합니다.
 - 이를 내부 슬롯/메서드 관점에서 보면 다음과 같습니다.
   - 접근자 프로퍼티 fullName을 프로퍼티 값에 접근하면 내부적으로 `[[Get]]` 내부 메서드가 호출되어 아래와 같이 동작합니다.
-    1. 프로퍼티 키가 유효한지 확인압니다. 프로퍼티 키는 문자열 또는 심벌이어야 합니다. 프로퍼티 키 "fullName"은 문자열이므로 유효한 프로퍼티 키 입니다.
+    1. 프로퍼티 키가 유효한지 확인합니다. 프로퍼티 키는 문자열 또는 심벌이어야 합니다. 프로퍼티 키 "fullName"은 문자열이므로 유효한 프로퍼티 키 입니다.
     2. 프로토타입 체인에서 프로퍼티를 검색합니다. person 객체에 fullName 프로퍼티가 존재합니다.
     3. 검색된 fullName 프로퍼티가 데이터 프로퍼티인지 접근자 프로퍼티인지 확인합니다.
     4. 접근자 프로퍼티 fullName의 프로퍼티 어트리뷰트 `[[Get]]`의 값, 즉 getter 함수를 호출하여 그 결과를 반환합니다.
@@ -251,7 +251,7 @@ console.log(descriptor);
     - 프로퍼티의 값: `[[Value]]`
     - 값의 갱신 가능 여부: `[[Writable]]`
     - 열거 가능 여부: `[[Enumerable]]`
-    - 재정의 가능 여부: `[[Cinfigurable]]`
+    - 재정의 가능 여부: `[[Configurable]]`
 
 ## 16.5 객체 변경 방지
 
@@ -263,7 +263,7 @@ console.log(descriptor);
 
 - `Object.preventExtensions` 메서드는 객체의 확장을 금지합니다.
 - 객체 확장이란 프로퍼티 추가 금지를 의미합니다.
-- 프로퍼티 동적 추가와 `Object.definProperty` 메서드 모두 사용이 금지됩니다.
+- 프로퍼티 동적 추가와 `Object.defineProperty` 메서드 모두 사용이 금지됩니다.
 
 ### 객체 밀봉
 
@@ -418,7 +418,7 @@ person.sayHello(); // Hi! My name is Lee
 
 - 함수는 객체이지만 일반 객체와는 다릅니다.
   - **일반 객체는 호출할 수 없지만 함수는 호출할 수 있습니다.**
-  - 따라서 함수 객체는 일반 객체가 가지고 있는 내부 슬롯과 내부 메서드는 물론, 함수로써 동작하기 위해 함수 객체만들 위한 `[[Environment]]`, `[[FormalParameters]]` 등의 내부 슬롯과 `[[Call]]`, `[[Construct]]` 같은 내부 메서드를 추가로 가지고 있습니다.
+  - 따라서 함수 객체는 일반 객체가 가지고 있는 내부 슬롯과 내부 메서드는 물론, 함수로써 동작하기 위해 함수 객체만을 위한 `[[Environment]]`, `[[FormalParameters]]` 등의 내부 슬롯과 `[[Call]]`, `[[Construct]]` 같은 내부 메서드를 추가로 가지고 있습니다.
   - 함수가 일반 함수로서 호출되면 함수 객체의 내부 메서드 `[[Call]]`이 호출되고 new 연산자와 함께 생성자 함수로써 호출되면 내부 메서드 `[[Construct]]`가 호출됩니다.
 
 #### 추가 설명
@@ -517,9 +517,9 @@ person.sayHello(); // Hi! My name is Lee
 
 ## 18.2 함수 객체의 프로퍼티
 
-### argments 프로퍼티
+### arguments 프로퍼티
 
-- 함수 객체의 arguments 프로퍼티 값은 argument 객체입니다.
+- 함수 객체의 arguments 프로퍼티 값은 arguments 객체입니다.
 - arguments 객체는 함수 호출 시 전달된 인수들의 정보를 담고있는 순회 가능한 이터러블한 유사 배열 객체입니다.
   - 함수 내부에서 지역 변수처럼 사용됩니다.
 - arguments 객체는 매개변수 개수를 확정할 수 없는 가변 인자 함수를 구현할 때 유용합니다.
@@ -562,7 +562,7 @@ person.sayHello(); // Hi! My name is Lee
 
 #### 여기서 잠깐!
 
-- `__proto__`는 최근 deferated 된걸로 알고있습니다 내용을 확인해보시는게 좋을거같아요
+- `__proto__`는 최근 deprecated 된걸로 알고있습니다 내용을 확인해보시는게 좋을거같아요
   https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Object/proto
 
 ### prototype 프로퍼티
