@@ -448,3 +448,193 @@ console.log(Object.getOwnPropertyDescriptor(person, "fullName"));
 ### 서브클래스의 constructor
 
 ### super 키워드
+
+---
+
+# 추가 정리
+
+## 클로저와 메모리 관리
+
+- 클로저는 자신이 생성된 렉시컬 환경을 기억하기 때문에, 필요 이상으로 오래 유지되면 불필요한 메모리를 점유함
+- 나쁜 예시: 메모리 누수가 발생하는 케이스
+
+  ```js
+  // 메모리 누수가 발생하는 클로저 사용 예
+  function createHeavyObject() {
+    const heavyArray = new Array(1000000).fill("HEAVY DATA");
+
+    return function () {
+      console.log("이 함수는 heavyArray를 계속 참조합니다");
+      // heavyArray를 사용하지 않더라도 클로저에 의해 유지됨
+    };
+  }
+
+  let leakyFunction = createHeavyObject();
+
+  // leakyFunction을 계속 가지고 있으면 heavyArray도 메모리에 남아있음
+  // 사용이 끝났음에도 불구하고 메모리가 해제되지 않음
+  ```
+
+- 좋은 예시: 필요한 데이터만 접근하여 누수를 방지
+
+  ```js
+  function createOptimizedObject() {
+    const heavyArray = new Array(1000000).fill("HEAVY DATA");
+    const usefulData = heavyArray[0]; // 실제로 필요한 데이터만 추출
+
+    // heavyArray를 직접 참조하지 않는 함수 반환
+    return function () {
+      console.log("필요한 데이터만 사용:", usefulData);
+      // heavyArray는 클로저에 의해 캡처되지 않음
+    };
+  }
+
+  let optimizedFunction = createOptimizedObject();
+  // heavyArray는 메모리에서 해제될 수 있음
+  ```
+
+  - 재미있는 부분은 실제로 필요한 데이터를 추출해서 사용한다면 누수가 발생하지 않습니다.
+
+- 클로저는 왜 생기는가?
+  - **내부 함수가 외부 함수의 변수에 접근할 수 있는 모든 경우에 생성이 됩니다.**
+  - 책에서 모든 경우를 클로저라고 표현하지 않는다 라는 지점과 동일한 부분인것 같습니다.
+- 클로저가 생성되는 상황
+  - 함수 반환 시 (가장 일반적인 경우)
+  - 객체 반환 시
+
+    ```js
+    function createCounter() {
+      let conut = 0;
+      return {
+        // 객체 반환 (메서드에서 클로저 형성)
+        increment: function () {
+          count++;
+        },
+        getCount: function () {
+          return count;
+        },
+      };
+    }
+
+    const counter = createCounter();
+    ```
+
+  - 즉시 실행 함수 내부
+    ```js
+    const uniqueId = (function () {
+      let id = 0;
+      return function () {
+        // 클로저 형성
+        return id++;
+      };
+    })();
+    ```
+  - 이벤트 핸들러 등록 시
+
+    ```js
+    function init() {
+      const button = document.getElementById("myBtn");
+      const clicks = 0;
+
+      button.addEventListener("click", function () {
+        // 클로저 형성
+        clicks++;
+        console.log(`Clicked ${clicks} times`);
+      });
+    }
+
+    init();
+    ```
+
+  - 콜백 함수 사용 시 (반환 없이도 클로저 형성)
+
+    ```js
+    function setup() {
+      const message = "Hello!";
+
+      // 반환 없이도 클로저 형성
+      setTimeout(function () {
+        console.log(message); // 외부 변수 접근
+      }, 1000);
+    }
+
+    setup();
+    ```
+
+    1. 렉시컬 환경 생성 단계
+       - setup() 함수가 호출되면 새로운 실행 컨텍스트와 렉시컬 환경이 생성
+       - message 변수가 이 렉시컬 환경에 저장됩니다.
+
+    2. 콜백 함수 정의 단계
+       - setTimeout 에 전달된 익명 함수는 자신이 생성된 렉시컬 환경(여기에서는 outer함수를 가리키니까 setup 함수의 환경이 되겠죠)을 `[[Environment]]` 내부 슬롯에 저장합니다.
+
+    3. setup() 함수 종료 후
+       - setup() 함수의 실행은 종료되지만, 내부에서 생성된 콜백 함수가 아직 실행 대기중
+       - 콜백 함수가 message 변수를 참조하고 있으므로, setup 함수의 렉시컬 환경은 메모리에서 해제되지 않음!!!
+
+    4. 콜백 함수 실행 시 (1초 후)
+       - 콜백 함수가 실행될 때 저장된 `[[Environment]]`를 통해 setup 함수의 렉시컬 환경에 접근
+       - message 변수를 정상적으로 참조할 수 있음
+    - 이게 왜 클로저임?
+      - 이벤트 루프의 실행 순서를 먼저 이해하면 좋습니다.
+        - **콜스택 > 마이크로태스크 > 브라우저 렌더링 > 매크로태스크**
+      - 외부 변수 참조: 콜백 함수가 외부(setup)의 변수(message)를 참조
+      - 외부 스코프에서 실행: 콜백 함수는 원래 정의된 스코프(이벤트 루프에서)와 다른 시점/장소에서 실행됩니다.
+      - 렉시컬 환경 유지 setup 함수가 종료된 후에도 참조된 변수가 메모리에 유지됩니다.
+
+  - 콜백 함수 예시와 유사한 사례
+
+    ```js
+    function addEventListeners() {
+      // 모든 버튼을 탐색
+      const buttons = document.querySelectorAll("button");
+      // 모든 버튼의 갯수
+      const totalButtons = buttons.length;
+
+      // 모든 버튼에 이벤트 바인딩
+      buttons.forEach((btn, index) => {
+        btn.addEventListener("click", function () {
+          // 각 클릭 핸들러는 totalButtons와 index를 기억
+          console.log(`Button ${index + 1}/${totalButtons} clicked`);
+        });
+      });
+    }
+
+    addEventListeners();
+    ```
+
+    - 클로저 입장으로 간단하게 해석해보면 btn.addEventListener 라는 내부함수가 outer 함수의 변수를 참조하고 있는 형태입니다.
+
+### 클로저 핵심 정리
+
+- 반환 여부는 중요하지 않습니다. 함수가 외부로 반환되거나 콜백으로 전달되거나 모든 경우에 클로저가 형성 가능합니다.
+- 실행 컨텍스트보다 오래 생존합니다. 콜백 함수가 나중에 실행될 것을 대비하여 관련 변수들을 외부 스코프에서 실행하기 위해 보존하게 됩니다.
+- 일상적인 코드에서 자주 발생합니다. 이벤트핸들러, 타이머, AJAX 콜백 등에서 자연스럽게 발생합니다.
+
+#### 그럼 우리는 어떤 생각을 해야 하는지?
+
+- 클로저를 원천적으로 방지하거나 없앤다 -> 잘못된 생각입니다.
+- 클로저가 생성되고 이걸 활용하는건 당연히 좋은 부분인데 이때 조심해야 하는 부분은 클로저가 생성되는 과정에서 불필요한 메모리 누수가 생기지 않도록 하는것이 중요합니다.
+- 제대로된 클린업을 처리해주는것이 베스트다!!!
+  - 몇몇의 데이터들은 WeakMap, WeakSet 을 활용해서 함께 참조해 준다면 GC될때 함께 상태가 업데이트 되니까 메모리 최적화가 가능합니다.
+
+    ```js
+    const weakMap = new WeakMap();
+
+    function createClosure() {
+      const largeObj = {
+        /* 큰 객체 */
+      };
+      const key = {}; // 약한 참조 키
+
+      weakMap.set(key, largeObj);
+
+      return function () {
+        const obj = weakMap.get(key);
+        console.log(obj.someProperty);
+      };
+    }
+    // 키에 대한 강한 참조가 사라지면 largeObj도 GC 대상이 됨
+    ```
+
+    - 경우에 따라 객체와 함께 릴리즈가 되어야 하는 데이터를 이런식으로 관리할 수 있습니다.
