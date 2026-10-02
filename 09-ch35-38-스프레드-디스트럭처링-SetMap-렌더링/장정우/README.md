@@ -577,11 +577,3 @@ CSSOM은 CSS 규칙을 브라우저가 계산에 사용할 수 있도록 표현�
 `<script>`를 본문 끝에 두면 그 앞의 HTML은 이미 파싱됐지만, 스크립트가 항상 페인트 뒤에 실행되는 것은 아니다. 정확한 실행 순서는 스크립트의 위치와 속성, 네트워크와 메인 스레드 작업에 따라 달라진다.
 
 React의 렌더 함수가 실행됐다는 사실만으로 리플로우나 리페인트가 일어났다고 판단하지 말자. 실제 DOM·스타일 변경과 브라우저의 Performance 기록을 함께 확인해야 한다.
-
-### 참고
-
-- [이전에 작성한 브라우저 렌더링 과정 글](https://so-tired.tistory.com/336)
-- [MDN: 중요 렌더링 경로](https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/Critical_rendering_path)
-- [MDN: 브라우저의 동작](https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/How_browsers_work)
-- [MDN: script 요소의 async와 defer](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/script)
-- [web.dev: 렌더링 성능](https://web.dev/articles/rendering-performance)
