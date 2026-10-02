@@ -411,24 +411,6 @@ for (let i = 0; i < 1000; i++) list.appendChild(item);
 - 서버에서 HTML을 완성해서 보내면 ①에서 바로 내용이 보임
 - SSR을 "SEO 때문"이라고만 알았는데, 38장 관점에선 **첫 렌더링까지의 시간** 문제이기도 함
 
-### 🔥 빌드된 index.html을 열어보자 (실습)
-
-```html
-<script type="module" src="/assets/index-abc123.js"></script>
-```
-
-엥 defer를 안 붙였는데 왜 HTML 파싱을 안 막지?
-→ **`type="module"` 스크립트는 기본적으로 defer처럼 동작함**
-
-|  | HTML 파싱 차단 | 실행 시점 |
-| --- | --- | --- |
-| 일반 `script` | ✅ 차단 | 즉시 |
-| `async` | ❌ | 다운로드 끝나는 즉시 (순서 보장 X) |
-| `defer` | ❌ | HTML 파싱 후 (순서 보장) |
-| **`type="module"`** | ❌ | **defer와 동일** |
-
-- 각자 프로젝트에서 `npm run build` 하고 `dist/index.html` 열어보면 책 내용을 내 코드에서 직접 확인해볼 수 있음!
-
 ### 🔥 애니메이션에 top 쓰면 안 되는 이유
 
 ```css
