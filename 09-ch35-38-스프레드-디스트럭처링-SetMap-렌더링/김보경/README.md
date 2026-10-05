@@ -790,6 +790,121 @@ export default LikeButton;
 - Set 집합연산 코드는 그냥 암기하세요...
 - 매우 많이 사용되고 매우 중요하니까요...
 
+## WeakSet
+
+### 기본 특징
+
+- 객체 전용 저장: 오직 객체만 값으로 저장 가능 (원시값 불가)
+- **약한 참조(Weak Reference): 객체에 대한 참조가 WeakSet에만 존재할 경우 GC의 대상이 됨**
+- 반복 불가능: 열거형 메서드 (kes, values, entries) 없음
+- 크기 확인 불가능: size 프로퍼티 없음
+- 전체 내용 확인 불가: 저장된 요소들에 직접 접근할 방법 없음
+
+> 정확하게 Set 자료형과는 매칭이 안된다!
+
+### 사용 예시
+
+- 객체의 추가 속성 방지
+  - 객체가 변경되지 않는 불변성을 강제할 수 있음
+
+    ```js
+    // 불변 객체들만 갖고있는 또 다른 객체를 선언함
+    const immutableObjects = new WeakSet();
+
+    function makeImmutable(obj) {
+      immutableObjects.add(obj);
+
+      // Proxy를 통해 setter에 대한 오버라이드를 처리
+      // 오버라이드 된 setter로 인해 Proxy가 먼저 실행되므로 에러가 나오게 됨
+      return new Proxy(obj, {
+        set(target, prop, value) {
+          if (immutableObjects.has(target)) {
+            throw new Error("This object is immutable!");
+          }
+
+          return Reflect.set(...arguments);
+        },
+      });
+    }
+
+    // 사용 예
+    const user = { name: "Alice" };
+    // user의 객체가 오염되지 않았으면 좋겠다 혹은 프로퍼티가 변경되지 않았으면 좋겠다 라는 의도
+    const protectedUser = makeImmutable(user);
+
+    protectedUser.age = 30; // Error: This object is immutable!
+    ```
+
+- 순환 참조 감지
+  - 이건 너무 심오해서 패스
+
+- 프라이빗 멤버 에뮬레이션
+
+  ```js
+  const privateMembers = new WeakSet();
+
+  class MyClass {
+    constructor() {
+      privateMembers.add(this);
+      this._secret = 42; // "프라이빗" 멤버
+    }
+
+    getSecret() {
+      if (!privateMembers.has(this)) {
+        throw new Error("Access denied!");
+      }
+
+      return this._secret;
+    }
+  }
+
+  // 사용 예
+  const instance = new MyClass();
+  console.log(instance.getSecret()); // 42
+
+  const fakeInstance = {};
+  console.log(fakeInstance.getSecret()); // Error: Access denied!
+  ```
+
+### WeakSet의 적절한 사용 시나리오
+
+- 객체의 추가 정보를 저장하지 않고 단순히 존재 여부만 추적할 때
+- 메모리 누수 위험 없이 객체를 임시로 표시해야 할 때
+- 라이브러리/프레임워크 내부에서 임시 상태를 추적할 때
+- 보안상 이유로 외부에서 접근하지 못하게 할 때
+
+---
+
+## 프론트에서 무거운 작업을 한다고 가정했을 때
+
+- 프론트에서의 무거운 작업은 뭐가 있을까?
+  - 클라이언트의 복잡한 연산 -> 수학적 계산 -> 그래픽 작업
+  - 용량이 큰 정적 파일
+    - 이미지
+    - 영상
+    - 파일
+- 메모리 상에 남아있는 파일은 언제 GC가 되는지 혹은 GC가 이루어지지 않고 문제를 일으키는지 등을 확인하기 위해 사용하는 방법
+  - FinalizationRegistry
+    - 역할
+      - 객체가 CG되면 등록된 콜백을 호출
+      - 주로 리소스 정리 (ex: 파일 핸들, 네트워크 연결 해제)에 사용
+    - 작동 조건
+      - 객체에 더 이상 강한 참조가 없어야 함
+      - GC 실행 시점은 자바스크립트 엔진에 의존적이르모 즉시 실행되지 않을 수 있습니다.
+- 그럼 예시로 비유해보면 어떤 상황이 있을까?
+  - 당근마켓에서 이미지를 업로드 하는 경우
+    - 첫 번째 상품을 업로드 한 뒤 두 번째 상품을 업로드 할 때
+    - 첫 번째 상품에서는 문제가 없었지만 두 번째 상품부터 문제가 생긴다
+    - 클로저 상에 무언가 존재하거나 전역화 되어있거나 등 GC가 안되는 문제를 확인하게 위해 registry를 사용할 수 있음.
+- 정적자원을 클라이언트에서 처리하는 경우 GC가 해제가 안되는 상황이 발생한다면 registry를 통해 모니터링을 시도할 수 있다!!
+
+### 실제 예제
+
+- WeakRef와 함께 약한 참조를 생성하고 registry를 연결한 패턴으로 주로 사용됨
+- 객체는 참조형태로 힙 안에 존재하므로 강한 참조를 제거 후 약한 참조로 모니터링 지속
+- 파일 핸들러 정리할 때 사용하면 됨
+  - 파일을 열고 사용 후 자동으로 리소스를 해제하려 할 때
+
 ---
 
 # 38장. 브라우저의 렌더링 과정
