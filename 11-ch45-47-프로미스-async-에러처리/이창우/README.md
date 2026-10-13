@@ -1,6 +1,117 @@
-# 모던 자바스크립트 Deep Dive 45 ~ 47장 정리
+# 모던 자바스크립트 Deep Dive 43 ~ 47장 정리
 
 ---
+
+## 43장 Ajax
+
+### Ajax란?
+
+- **Ajax**(Asynchronous JavaScript and XML): 자바스크립트로 브라우저가 서버에 **비동기 방식으로 데이터를 요청**하고, 응답받은 데이터로 웹페이지를 **동적으로 갱신**하는 방식
+- 브라우저가 제공하는 Web API인 `XMLHttpRequest` 객체 기반 (요즘은 `fetch`)
+
+![Ajax](./images/ajax.png)
+
+| | 이전 방식 | Ajax |
+| --- | --- | --- |
+| 응답 | 매번 **완전한 HTML** | **필요한 데이터만** |
+| 화면 갱신 | 페이지 전체 리렌더링 → 깜빡임 | **필요한 부분만** 갱신 |
+| 처리 방식 | 동기 → 응답 올 때까지 블로킹 | 비동기 → 블로킹 X |
+
+### JSON
+
+- **JSON**(JavaScript Object Notation): 클라이언트와 서버 간 HTTP 통신을 위한 **텍스트 데이터 포맷**. 키는 반드시 큰따옴표
+
+```js
+const obj = { name: 'Lee', age: 20 };
+
+// 직렬화: 객체 → JSON 문자열 (서버로 보낼 때)
+const json = JSON.stringify(obj);
+console.log(json); // '{"name":"Lee","age":20}'
+
+// 역직렬화: JSON 문자열 → 객체 (서버에서 받을 때)
+const parsed = JSON.parse(json);
+console.log(parsed); // { name: 'Lee', age: 20 }
+```
+
+### XMLHttpRequest
+
+```js
+const xhr = new XMLHttpRequest();
+
+// 1. 요청 초기화 (메서드, URL)
+xhr.open('GET', 'https://jsonplaceholder.typicode.com/todos/1');
+
+// 2. 요청 전송
+xhr.send();
+
+// 3. 응답 처리 — 비동기라 이벤트 핸들러로 받는다
+xhr.onload = () => {
+  if (xhr.status === 200) {
+    console.log(JSON.parse(xhr.response));
+    // { userId: 1, id: 1, title: 'delectus aut autem', completed: false }
+  } else {
+    console.error('Error', xhr.status, xhr.statusText);
+  }
+};
+```
+
+⇒ 응답을 `onload` 콜백으로 받는 이유가 42장 이벤트 루프 그대로다. 요청은 브라우저가 처리하고, 끝나면 콜백이 태스크 큐 → 이벤트 루프 → 콜 스택으로
+
+## 44장 REST API
+
+### REST API란?
+
+- **REST**(REpresentational State Transfer): HTTP를 기반으로 클라이언트가 서버의 리소스에 접근하는 방식을 규정한 **아키텍처**
+- **REST API**: REST를 기반으로 서비스 API를 구현한 것. REST의 설계 원칙을 잘 지키면 **RESTful**하다고 한다.
+
+| 구성 요소 | 내용 | 표현 방법 |
+| --- | --- | --- |
+| 자원 (resource) | 무엇을 | **URI** |
+| 행위 (verb) | 어떻게 | **HTTP 요청 메서드** |
+| 표현 (representation) | 구체적인 내용 | **페이로드** (JSON 등) |
+
+### 설계 원칙
+
+**① URI는 리소스를 표현해야 한다** — 동사 X, **명사** O
+
+```text
+# bad
+GET /getTodos/1
+GET /todos/show/1
+
+# good
+GET /todos/1
+```
+
+**② 리소스에 대한 행위는 HTTP 요청 메서드로 표현한다** — URI에 행위를 넣지 않는다
+
+```text
+# bad
+GET /todos/delete/1
+
+# good
+DELETE /todos/1
+```
+
+### HTTP 요청 메서드
+
+![HTTP 요청 메서드](./images/http-method.png)
+
+```js
+// POST /todos — 새 todo 생성
+fetch('/todos', {
+  method: 'POST',
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ id: 4, content: 'Angular', completed: false }),
+});
+
+// PATCH /todos/4 — completed만 수정
+fetch('/todos/4', {
+  method: 'PATCH',
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ completed: true }),
+});
+```
 
 ## 45장 프로미스
 
@@ -312,6 +423,8 @@ console.log('D');
 ## 핵심 흐름
 
 ```text
+Ajax            → 필요한 데이터만 비동기로 받아 필요한 부분만 갱신 (JSON)
+REST API        → 자원은 URI, 행위는 HTTP 메서드, 표현은 페이로드
 콜백 패턴의 한계  → 결과를 밖으로 못 꺼냄 → 콜백 중첩 → 콜백 헬 + try...catch로 에러 못 잡음
 Promise         → 비동기 처리 상태와 결과를 관리하는 표준 빌트인 객체. 성공 resolve / 실패 reject
 상태            → pending → fulfilled / rejected (settled 되면 끝)
